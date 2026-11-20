@@ -1,10 +1,10 @@
 {
   "programa": "gastos-causidicos-moreno",
-  "version": 20,
-  "archivo": "Causidicos_y_convenios_Moreno VFINAL 20.html",
-  "sha256": "6487f713cbe7cc7e2845cf89b6146696df09bb44b012e928a90c553fe4ea8b90",
-  "tamano": 756518,
-  "fecha": "2026-10-28",
-  "notas": "Actualizar reemplazando el archivo en la misma carpeta y con el mismo nombre",
-  "firma": "HNGVk3Who0hqmjPGUsiSDOr/BaqL8y4D0WMimGtZO861abi8yabCPc4/e1FAqrvN3qXhIlZE1FMmawijdWhkfw=="
+  "version": 21,
+  "archivo": "Causidicos_y_convenios_Moreno.html",
+  "sha256": "f40c6e20ff1725817cb129c5cef8bb0342c8bbafb1969db77dc36417a49a2531",
+  "tamano": 757003,
+  "fecha": "2026-11-20",
+  "notas": "",
+  "firma": "+85mjYNBbFv8O9T+M2z4IE9VP2gwz5rCX1pMy+NRfFUcTZMNpFmgLS0E+zX6a76BqcojEYpFcS1hWlU/eb2Ylw=="
 }
