@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head>
   <meta charset="UTF-8">
-  <meta name="gcm-version" content="21">
+  <meta name="gcm-version" content="23">
   <!-- Gastos Causídicos y Convenios. © 2026 Dr. Jorge Gustavo David Quintana (estudiodavidquintana@gmail.com).
        Todos los derechos reservados. Obra protegida por la Ley 11.723. Prohibida su venta, reproducción,
        distribución o modificación sin autorización escrita del autor. Ver "Términos y condiciones" en el programa. -->
@@ -342,6 +342,14 @@
                 <div class="col-span-1 md:col-span-3 lg:col-span-2">
                   <label class="block text-xs font-semibold text-slate-700 mb-1">Fecha Liquidación</label>
                   <input type="date" id="inpFecha" onchange="syncFecha('inp')" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500">
+                </div>
+              </div>
+
+              <div class="col-span-2 md:col-span-6 lg:col-span-4">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Certificado/s de deuda N° <span style="font-weight:400; color:#64748b;">(si son varios, separar con coma)</span></label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none text-xs"><i class="fa-solid fa-file-invoice"></i></span>
+                  <input type="text" id="inpCertificados" placeholder="Ej. 125487, 125488" oninput="syncCertificados()" onblur="normalizarCampoCertificados()" class="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500 font-medium">
                 </div>
               </div>
             </div>
@@ -816,6 +824,12 @@
                     <td class="col-fin hidden bg-amber-50/70" id="finContribVacia"></td>
                     <td class="py-2 px-3 text-slate-600 font-semibold text-left" id="tblExpte">expte: 3232</td>
                   </tr>
+                  <tr class="bg-slate-50/80 font-medium hidden" id="filaCertificados">
+                    <td class="py-2 px-3 text-slate-700">Certificado/s de deuda N°</td>
+                    <td class="py-2 px-3 text-slate-900 font-bold text-left" id="tblCertificados" colspan="1"></td>
+                    <td class="col-fin hidden bg-amber-50/70"></td>
+                    <td class="py-2 px-3 text-slate-600 text-left" id="tblCertificadosCant"></td>
+                  </tr>
 
                   <tr class="hover:bg-slate-50 transition">
                     <td class="py-2.5 px-3 font-semibold text-slate-900">Capital</td>
@@ -952,7 +966,7 @@
 
                   <tr class="text-slate-500 text-[11px]">
                     <td class="span-casi py-3 px-3" colspan="2">
-                      <span class="font-bold text-slate-700">Cuenta/Partida/Patente:</span> <span id="tblFooterCuenta">4545</span>
+                      <span class="font-bold text-slate-700">Cuenta/Partida/Patente:</span> <span id="tblFooterCuenta">4545</span><span id="tblFooterCertificados"></span>
                     </td>
                     <td class="py-3 px-3 text-right">
                       <span id="tblFooterFecha">Fecha: 2026-09-08</span>
@@ -2154,6 +2168,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       contribuyente: 'GRAN MUTUAL ARGENTINA DE VIVIENDA',
       expte: 'MG8715/2026',
       cuenta: '91899455',
+      certificados: '125487, 125488',
       juzgado: 'Juzg. Civ. y Com. N° 1',
       fecha: hoyISO(),
       capital: 42218235.28,
@@ -2229,7 +2244,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     // Default Agreement Clauses Templates
     const defaultTemplates = {
       contado: [
-        { id: 'c1', text: 'El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.', isCbu: false },
+        { id: 'c1', text: 'El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, certificado/s de deuda N° <strong>{certificados}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.', isCbu: false },
         { id: 'c2', text: 'El contribuyente constituye domicilio fiscal electrónico en el correo mail: <strong>{mail}</strong>, en los términos del <strong>{artDomicilioFiscal}</strong> de la <strong>{normOrdenanza}</strong> concordantes y vigentes al momento de la firma del presente, <strong>{normCodigoFiscal}</strong>, domicilio en el cual serán plenamente eficaces todas las notificaciones, emplazamientos y comunicaciones que allí se practiquen por esta vía.', isCbu: false },
         { id: 'c3', text: 'El contribuyente procederá a acreditar el pago de los gastos causídicos el mismo día de suscripción del presente convenio a efectos de que la MUNICIPALIDAD DE MORENO acredite los mismos judicialmente. El contribuyente toma conocimiento que hasta que no se acredite el pago de los gastos causídicos no se procederá a realizar la presentación judicial que corresponda.<br>Los honorarios del presente proceso judicial se convienen conforme a lo normado por las <strong>{normLeyesHonorarios}</strong>, y cuyo monto surge del recibo de pago adjunto. A efectos de ser presentado judicialmente se detallan los montos a abonar por el contribuyente:{getTableHtml}', isCbu: false },
         { id: 'c4', text: 'A efectos de garantizar el presente convenio, el contribuyente manifiesta que posee cuentas en el Banco <strong>{banco}</strong> siendo el CBU <strong>{cbu}</strong>, acompañando en este acto copia de la constancia emitida por el banco, o en su defecto informa ser titular de la plataforma electrónica de pago <strong>{plataforma}</strong> siendo el CVU/CBU <strong>{cbu}</strong> conforme lo estipulado en el <strong>{normDecretoCbu}</strong>, en caso de corresponder. El contribuyente declara que la constancia de CBU que acompaña se encuentra vigente y es emitida por entidad bancaria.', isCbu: true },
@@ -2238,7 +2253,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         { id: 'c7', text: 'El “contribuyente” se compromete a concurrir al Juzgado interviniente en caso de que fuera necesario, ratificando los datos aportados en el apartado inicial a sus efectos.', isCbu: false }
       ],
       cuotas: [
-        { id: 'q1', text: 'El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.', isCbu: false },
+        { id: 'q1', text: 'El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, certificado/s de deuda N° <strong>{certificados}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.', isCbu: false },
         { id: 'q2', text: 'El contribuyente constituye domicilio fiscal electrónico en el correo mail: <strong>{mail}</strong>, en los términos del <strong>{artDomicilioFiscal}</strong> de la <strong>{normOrdenanza}</strong> concordantes y vigentes al momento de la firma del presente, <strong>{normCodigoFiscal}</strong>, domicilio en el cual serán plenamente eficaces todas las notificaciones, emplazamientos y comunicaciones que allí se practiquen por esta vía.', isCbu: false },
         { id: 'q3', text: 'El contribuyente procederá a acreditar el pago de los gastos causídicos el mismo día de suscripción del presente convenio a efectos de que la MUNICIPALIDAD DE MORENO acredite los mismos judicialmente. El contribuyente toma conocimiento que hasta que no se acredite el pago de los gastos causídicos no se procederá a realizar la presentación judicial que corresponda.<br>Los honorarios del presente proceso judicial se convienen de acuerdo a lo normado por las <strong>{normLeyesHonorarios}</strong>, y cuyo monto surge del recibo de pago adjunto. A efectos de ser presentado judicialmente se detallan los montos a abonar por el contribuyente:{getTableHtml}El contribuyente se compromete a abonar la deuda indicada precedentemente en un plan de pagos, cuyo compromiso -con detalle de cuotas y montos- se suscriben conjuntamente con la firma del presente.', isCbu: false },
         { id: 'q4', text: 'A efectos de garantizar el presente convenio, el contribuyente manifiesta que posee cuentas en el Banco <strong>{banco}</strong> siendo el CBU <strong>{cbu}</strong>, acompañando en este acto copia de la constancia emitida por el banco, o en su defecto informa ser titular de la plataforma electrónica de pago <strong>{plataforma}</strong> siendo el CVU/CBU <strong>{cbu}</strong> conforme lo estipulado en el <strong>{normDecretoCbu}</strong>, en caso de corresponder. El contribuyente declara que la constancia de CBU que acompaña se encuentra vigente y es emitida por entidad bancaria.', isCbu: true },
@@ -2248,7 +2263,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         { id: 'q8', text: 'El “contribuyente” se compromete a concurrir al Juzgado interviniente en caso de que fuera necesario, ratificando los datos aportados en el apartado inicial a sus efectos.', isCbu: false }
       ],
       fiador: [
-        { id: 'f1', text: 'El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El presente convenio se otorga de acuerdo a las condiciones y modalidades establecidas en el <strong>{artCuotasOrdenanza}</strong> de la <strong>{normOrdenanza}</strong>, <strong>{normDecreto}</strong>, concordantes y aplicables al momento de la firma del presente. El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar la totalidad del monto reclamado.', isCbu: false },
+        { id: 'f1', text: 'El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, certificado/s de deuda N° <strong>{certificados}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El presente convenio se otorga de acuerdo a las condiciones y modalidades establecidas en el <strong>{artCuotasOrdenanza}</strong> de la <strong>{normOrdenanza}</strong>, <strong>{normDecreto}</strong>, concordantes y aplicables al momento de la firma del presente. El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar la totalidad del monto reclamado.', isCbu: false },
         { id: 'f2', text: 'El contribuyente constituye domicilio fiscal electrónico en el correo E-mail: <strong>{mail}</strong>, en los términos del <strong>{artDomicilioFiscal}</strong> de la <strong>{normOrdenanza}</strong> concordantes y vigentes, <strong>{normCodigoFiscal}</strong>.', isCbu: false },
         { id: 'f3', text: 'El contribuyente procederá a acreditar el pago de los gastos causídicos el mismo día de suscripción del presente convenio. Los honorarios se convienen conforme <strong>{normLeyesHonorarios}</strong>:{getTableHtml}El contribuyente se compromete a abonar la deuda indicada precedentemente en un plan de pagos, cuyo compromiso se suscribe conjuntamente con el presente.', isCbu: false },
         { id: 'f_cbu_contrib', text: 'A efectos de garantizar el presente convenio, el contribuyente manifiesta que posee cuentas en el Banco <strong>{banco}</strong> siendo el CBU <strong>{cbu}</strong>, acompañando en este acto copia de la constancia emitida por el banco, o en su defecto informa ser titular de la plataforma electrónica de pago <strong>{plataforma}</strong> siendo el CVU/CBU <strong>{cbu}</strong> conforme lo estipulado en el <strong>{normDecretoCbu}</strong>, en caso de corresponder. El contribuyente declara que la constancia de CBU que acompaña se encuentra vigente y es emitida por entidad bancaria.', isCbu: true },
@@ -2307,7 +2322,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     "contado": [
       {
         "id": "c1",
-        "text": "El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.",
+        "text": "El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, certificado/s de deuda N° <strong>{certificados}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.",
         "isCbu": false
       },
       {
@@ -2344,7 +2359,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     "cuotas": [
       {
         "id": "q1",
-        "text": "El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.",
+        "text": "El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, certificado/s de deuda N° <strong>{certificados}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.",
         "isCbu": false
       },
       {
@@ -2386,7 +2401,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     "fiador": [
       {
         "id": "f1",
-        "text": "El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El presente convenio se otorga de acuerdo a las condiciones y modalidades establecidas en el <strong>{artCuotasOrdenanza}</strong> de la <strong>{normOrdenanza}</strong>, <strong>{normDecreto}</strong>, concordantes y aplicables al momento de la firma del presente. El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.",
+        "text": "El “contribuyente” reconoce su calidad de deudor y responsable del proceso judicial iniciado por la Municipalidad de Moreno en relación a la PARTIDA/CUENTA/PATENTE <strong>{cuentaPartida}</strong>, certificado/s de deuda N° <strong>{certificados}</strong>, en los autos caratulados “MUNICIPALIDAD DE MORENO C/ <strong>{caratula}</strong> S/ APREMIO”, en trámite por ante Juzgado de Primera Instancia en lo Civil y Comercial N° <strong>{juzgNro}</strong> del Departamento Judicial de <strong>{deptoJudicial}</strong>, Expediente N° <strong>{expteNro}</strong>.<br>El presente convenio se otorga de acuerdo a las condiciones y modalidades establecidas en el <strong>{artCuotasOrdenanza}</strong> de la <strong>{normOrdenanza}</strong>, <strong>{normDecreto}</strong>, concordantes y aplicables al momento de la firma del presente. El “contribuyente” se allana en forma total e incondicional a la demanda y reconoce adeudar a la Municipalidad de Moreno la totalidad del monto reclamado en el juicio detallado, renunciando a toda reclamación impugnatoria administrativa o judicial de la deuda mencionada.",
         "isCbu": false
       },
       {
@@ -2970,6 +2985,19 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     /* La fecha de corte es el ÚLTIMO día con el % anterior (inclusive): hasta el
        02/12/2025 se aplica 10%; desde el 03/12/2025, 5%. Las configuraciones
        guardadas con el 03/12/2025 como corte se corrigen una sola vez. */
+    /* Agrega "certificado/s de deuda N° {certificados}" en la cláusula primera de los modelos guardados (una sola vez) */
+    function migrarCertificadosEnClausulas() {
+      if (appSettings.migCertificados) return;
+      const re = /(PARTIDA\/CUENTA\/PATENTE\s*<strong>\{cuentaPartida\}<\/strong>)(?!\s*,\s*certificado)/g;
+      const t = appSettings.convenioTemplates;
+      if (t && typeof t === 'object') {
+        Object.keys(t).forEach(function (tipo) {
+          (t[tipo] || []).forEach(function (c) { if (c && typeof c.text === 'string') c.text = c.text.replace(re, '$1, certificado/s de deuda N° <strong>{certificados}</strong>'); });
+        });
+      }
+      appSettings.migCertificados = true;
+      try { guardarLocal(STORAGE_KEY_SETTINGS, JSON.stringify(appSettings)); } catch (e) {}
+    }
     function migrarCorteSobretasa() {
       if (appSettings.sobretasaCorteRevisado) return;
       if (!appSettings.sobretasaFechaCorte || appSettings.sobretasaFechaCorte === '2025-12-03') appSettings.sobretasaFechaCorte = '2025-12-02';
@@ -3175,6 +3203,15 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       if (document.getElementById('tblTotalMasGastos')) document.getElementById('tblTotalMasGastos').textContent = formatCurrency(totalMasGastos);
       if (document.getElementById('tblCertificadoTasaVal')) document.getElementById('tblCertificadoTasaVal').textContent = formatCurrency(baseTasa);
       if (document.getElementById('tblFooterCuenta')) document.getElementById('tblFooterCuenta').textContent = cuentaVal;
+      {
+        const certs = textoCertificados();
+        const lista = listaCertificados();
+        const fila = document.getElementById('filaCertificados');
+        if (fila) fila.classList.toggle('hidden', !certs);
+        if (document.getElementById('tblCertificados')) document.getElementById('tblCertificados').textContent = certs;
+        if (document.getElementById('tblCertificadosCant')) document.getElementById('tblCertificadosCant').textContent = lista.length > 1 ? lista.length + ' certificados' : (lista.length ? '1 certificado' : '');
+        if (document.getElementById('tblFooterCertificados')) document.getElementById('tblFooterCertificados').innerHTML = certs ? ' &nbsp;|&nbsp; <span class="font-bold text-slate-700">Certificado/s de deuda N°:</span> ' + escHtml(certs) : '';
+      }
       if (document.getElementById('tblFooterFecha')) document.getElementById('tblFooterFecha').textContent = `Fecha: ${formatFechaAR(fechaVal)}`;
 
       generateDraft({
@@ -3277,6 +3314,26 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       
       saveAndCalculate();
       updateConvenioView();
+    }
+
+    /* ---------- Certificado/s de deuda ----------
+       Se cargan en el encabezado; uno o varios separados por coma.
+       Se muestran en el informe y en la cláusula primera de los convenios. */
+    function listaCertificados(texto) {
+      const t = texto != null ? texto : (document.getElementById('inpCertificados')?.value ?? state.certificados ?? '');
+      return String(t).split(/[,;\n]+|\s+y\s+|\s+-\s+/i).map(function (x) { return x.trim(); }).filter(Boolean);
+    }
+    function textoCertificados(texto) { return listaCertificados(texto).join(', '); }
+    function syncCertificados() {
+      state.certificados = document.getElementById('inpCertificados')?.value || '';
+      saveAndCalculate();
+      updateConvenioView();
+    }
+    function normalizarCampoCertificados() {
+      const el = document.getElementById('inpCertificados');
+      if (!el) return;
+      const n = textoCertificados(el.value);
+      if (n !== el.value) { el.value = n; syncCertificados(); }
     }
 
     /* Número de juzgado para el encabezado del informe (el mismo que usa el convenio) */
@@ -3803,7 +3860,9 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
        Vienen incluidas: ninguna computadora tiene que configurar nada.
        Un administrador puede cambiarlas en Configuración → Actualizaciones en línea. */
     const ACT_URL_AUTOR = 'https://raw.githubusercontent.com/DavidQ-glitch/gastos-causidicos-actualizaciones/main/actualizacion.json';
-    const ACT_CLAVE_AUTOR = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0jh75PyuzWrcbR4GV9f/TGuPbz9mX9bGHYvL86k9uwZkNXYMBIR/3b3DDFsO/LPjSg0FOx/aFeSNWgp9ugeinw==';
+    const ACT_CLAVE_AUTOR = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE68zkdUYs24z902QnW2gXPOPIsUYG/eLc/qYvkf8WsxvWctpAXOQyUgY9ytyq3o6feEVovdttbjVnayVxLJpRYg==';   /* huella 7400 0FE6 3D1B 6381 (desde la versión 22) */
+    /* Claves anteriores del autor que ya no se usan: si quedaron guardadas en la configuración, se reemplazan por la actual */
+    const ACT_CLAVES_REEMPLAZADAS = ['MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0jh75PyuzWrcbR4GV9f/TGuPbz9mX9bGHYvL86k9uwZkNXYMBIR/3b3DDFsO/LPjSg0FOx/aFeSNWgp9ugeinw=='];
     let actPendiente = null;
     let actAvisada = false;
     function versionProgramaActual() {
@@ -3811,7 +3870,9 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     }
     function cfgActualizacion() {
       const c = appSettings.actualizacion || {};
-      return { url: String(c.url || ACT_URL_AUTOR).trim(), clave: String(c.clavePublica || ACT_CLAVE_AUTOR).replace(/\s+/g, '') };
+      let clave = String(c.clavePublica || '').replace(/\s+/g, '');
+      if (!clave || ACT_CLAVES_REEMPLAZADAS.includes(clave)) clave = ACT_CLAVE_AUTOR;
+      return { url: String(c.url || ACT_URL_AUTOR).trim(), clave: clave };
     }
     function base64ABytes(b64) {
       const bin = atob(String(b64 || '').replace(/\s+/g, ''));
@@ -4519,6 +4580,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       
       const caratula = document.getElementById('convCaratula')?.value || '___________________________________________________________';
       const cuentaPartida = document.getElementById('convCuentaPartida')?.value || '__________________________';
+      const certificadosConv = textoCertificados() || '__________________________';
       const juzgNro = document.getElementById('convJuzgNro')?.value || '____';
       const deptoJudicial = document.getElementById('convDeptoJudicial')?.value || 'MORENO-GENERAL RODRIGUEZ';
       const expteNro = document.getElementById('convExpteNro')?.value || '__________________________';
@@ -4594,6 +4656,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       function replacePlaceholders(str) {
         return str
           .replace(/\{cuentaPartida\}/g, cuentaPartida)
+          .replace(/\{certificados\}/g, escHtml(certificadosConv))
           .replace(/\{caratula\}/g, caratula)
           .replace(/\{juzgNro\}/g, juzgNro)
           .replace(/\{deptoJudicial\}/g, deptoJudicial)
@@ -6244,6 +6307,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         convExpteNro: '',
         cuenta: '',
         convCuentaPartida: '',
+        certificados: '',
         juzgado: '',
         convCaratula: '',
         convJuzgNro: '1',
@@ -6373,6 +6437,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         state.convCuentaPartida = cuentaVal;
 
         state.juzgado = document.getElementById('inpJuzgado')?.value || '';
+        state.certificados = document.getElementById('inpCertificados')?.value || '';
         state.fecha = document.getElementById('inpFecha')?.value || '';
         state.capital = getNum('inpCapital', 0);
         state.syncTasaBase = document.getElementById('chkSyncTasa')?.checked ?? true;
@@ -6680,6 +6745,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       if (document.getElementById('convCuentaPartida')) document.getElementById('convCuentaPartida').value = cuentaVal;
 
       if (document.getElementById('inpJuzgado')) document.getElementById('inpJuzgado').value = state.juzgado || '';
+      if (document.getElementById('inpCertificados')) document.getElementById('inpCertificados').value = state.certificados || '';
       if (document.getElementById('inpFecha')) document.getElementById('inpFecha').value = state.fecha || hoyISO();
       if (document.getElementById('inpCapital')) document.getElementById('inpCapital').value = state.capital ?? 0;
       
@@ -7208,7 +7274,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         <body>
           ${getBrandBarHtmlForDoc(true)}
           <h2>MUNICIPALIDAD DE MORENO - LIQUIDACIÓN DE GASTOS CAUSÍDICOS</h2>
-          <p class="sub">Autos: ${contribuyente} | Expte: ${expte}${textoJuzgadoInforme() ? ' | ' + textoJuzgadoInforme() : ''} | Cuenta/Partida/Patente: ${cuenta}</p>
+          <p class="sub">Autos: ${contribuyente} | Expte: ${expte}${textoJuzgadoInforme() ? ' | ' + textoJuzgadoInforme() : ''} | Cuenta/Partida/Patente: ${cuenta}${textoCertificados() ? ' | Certificado/s de deuda N°: ' + escHtml(textoCertificados()) : ''}</p>
           ${soloCuotas ? `<p class="sub" style="color:#92400e; font-weight:bold;">Liquidación en cuotas — el plan de pagos asciende a ${formatCurrency(cr.capital)}${state.planCuotas > 0 ? ' en ' + state.planCuotas + ' cuotas' : ''}</p>` : ''}
           ${finW ? `<p class="sub" style="color:#92400e; font-weight:bold;">Liquidación de contado y en cuotas — el plan de pagos asciende a ${formatCurrency(finW.capital)}${state.planCuotas > 0 ? ' en ' + state.planCuotas + ' cuotas' : ''}</p>` : ''}
           
@@ -7228,6 +7294,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
                 ${finW ? '<td class="fin"></td>' : ''}
                 <td>expte: ${expte}</td>
               </tr>
+              ${textoCertificados() ? `<tr class="gray"><td class="bold">Certificado/s de deuda N°</td><td class="bold">${escHtml(textoCertificados())}</td>${finW ? '<td class="fin"></td>' : ''}<td>${listaCertificados().length > 1 ? listaCertificados().length + ' certificados' : '1 certificado'}</td></tr>` : ''}
               <tr>
                 <td class="bold">Capital</td>
                 <td class="right bold">${formatCurrency(cr.capital)}</td>${fc('capital')}
@@ -7769,6 +7836,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         migrarAdminPass();
         migrarUsuarios();
         migrarCorteSobretasa();
+        migrarCertificadosEnClausulas();
         ['chkArancelDnrpa', 'chkArancelRpba', 'chkArancelBcra', 'chkGastoDnrpaTransf', 'chkGastoRpbaRecupero'].forEach(function (k) { delete appSettings[k]; });
         if (!appSettings.valoresActualizados) appSettings.valoresActualizados = new Date().toISOString();
         depurarUsuariosRepetidos(null);
@@ -7938,6 +8006,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         req('convCalle', 'domicilio (calle y número)');
         req('convCaratula', 'carátula del juicio');
         req('convCuentaPartida', 'cuenta / partida / patente');
+        if (!textoCertificados()) A('Falta el número de certificado/s de deuda (encabezado, sección 1): en el convenio saldrá en blanco.', 'inpCertificados', 'calc');
         req('convJuzgNro', 'número de juzgado');
         req('convExpteNro', 'número de expediente');
         req('convFechaTexto', 'fecha del convenio');
