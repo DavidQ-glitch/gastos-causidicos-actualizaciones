@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head>
   <meta charset="UTF-8">
-  <meta name="gcm-version" content="23">
+  <meta name="gcm-version" content="24">
   <!-- Gastos Causídicos y Convenios. © 2026 Dr. Jorge Gustavo David Quintana (estudiodavidquintana@gmail.com).
        Todos los derechos reservados. Obra protegida por la Ley 11.723. Prohibida su venta, reproducción,
        distribución o modificación sin autorización escrita del autor. Ver "Términos y condiciones" en el programa. -->
@@ -296,21 +296,13 @@
             <div class="flex items-center justify-between flex-wrap gap-2 pb-2 mb-3 border-b border-slate-100">
               <div class="flex items-center gap-2">
                 <span class="w-7 h-7 rounded-md bg-sky-100 text-sky-700 flex items-center justify-center text-sm font-bold">1</span>
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Datos del Expediente y Contribuyente</h2>
-              </div>
-              <!-- Inicio del juicio: define la sobretasa de justicia (habilitable desde el Panel Administrador) -->
-              <div id="boxInicioJuicio" class="flex items-center gap-2 no-print">
-                <span class="text-[11px] font-bold text-slate-700"><i class="fa-solid fa-gavel text-purple-600"></i> Inicio del juicio:</span>
-                <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                  <button type="button" id="btnJuicioAnterior" onclick="setJuicioInicio('anterior')" class="px-2.5 py-1 rounded-md text-[11px] font-bold transition"></button>
-                  <button type="button" id="btnJuicioPosterior" onclick="setJuicioInicio('posterior')" class="px-2.5 py-1 rounded-md text-[11px] font-bold transition"></button>
-                </div>
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Datos del Expediente</h2>
               </div>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-3">
               <div class="col-span-2 md:col-span-6 lg:col-span-4">
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Contribuyente / Razón Social</label>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Demandado tal cual figura en juicio</label>
                 <div class="relative">
                   <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none text-xs"><i class="fa-solid fa-user-tag"></i></span>
                   <input type="text" id="inpContribuyente" placeholder="Ej. GRAN MUTUAL ARGENTINA DE VIVIENDA" oninput="syncContribuyente('inp')" class="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500 font-medium">
@@ -351,6 +343,16 @@
                   <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none text-xs"><i class="fa-solid fa-file-invoice"></i></span>
                   <input type="text" id="inpCertificados" placeholder="Ej. 125487, 125488" oninput="syncCertificados()" onblur="normalizarCampoCertificados()" class="w-full pl-8 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500 font-medium">
                 </div>
+              </div>
+
+              <!-- Inicio del juicio: define la sobretasa de justicia (habilitable desde el Panel Administrador) -->
+              <div id="boxInicioJuicio" class="col-span-2 md:col-span-6 lg:col-span-4 no-print">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Inicio del juicio <span style="font-weight:400; color:#64748b;">(define la sobretasa)</span></label>
+                <select id="selInicioJuicio" onchange="elegirInicioJuicio(this.value)" class="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-sky-500 font-semibold">
+                  <option value="">— Elegir —</option>
+                  <option value="anterior" id="optJuicioAnterior"></option>
+                  <option value="posterior" id="optJuicioPosterior"></option>
+                </select>
               </div>
             </div>
           </div>
@@ -3037,6 +3039,16 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
         if (bP) bP.textContent = 'Desde el ' + formatFechaAR(diaSiguienteISO(c.corte)) + ' · ' + fmtPct(c.posterior) + '%';
         marcar(bA, !post);
         marcar(bP, post);
+        const sel = document.getElementById('selInicioJuicio');
+        const oA = document.getElementById('optJuicioAnterior');
+        const oP = document.getElementById('optJuicioPosterior');
+        if (oA) oA.textContent = 'Hasta el ' + formatFechaAR(c.corte) + ' · sobretasa ' + fmtPct(c.anterior) + '%';
+        if (oP) oP.textContent = 'Desde el ' + formatFechaAR(diaSiguienteISO(c.corte)) + ' · sobretasa ' + fmtPct(c.posterior) + '%';
+        if (sel) {
+          const elegido = state.juicioInicioElegido !== false;
+          sel.value = elegido ? (post ? 'posterior' : 'anterior') : '';
+          sel.classList.toggle('campo-falta', !elegido);
+        }
         inp.value = post ? c.posterior : c.anterior;
         state.sobretasaPct = post ? c.posterior : c.anterior;
         inp.readOnly = true;
@@ -3053,12 +3065,24 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       }
     }
 
+    function elegirInicioJuicio(v) {
+      if (v === 'anterior' || v === 'posterior') { setJuicioInicio(v); return; }
+      /* volvió a "— Elegir —": queda pendiente (se calcula como hasta la fecha de corte) */
+      state.juicioInicio = 'anterior';
+      state.juicioInicioElegido = false;
+      aplicarSobretasaSegunJuicio(false);
+      saveAndCalculate();
+      updateConvenioView();
+      try { marcarCamposObligatorios(); actualizarIndicadorControl(); } catch (e) {}
+    }
+
     function setJuicioInicio(v) {
       state.juicioInicio = (v === 'posterior') ? 'posterior' : 'anterior';
       state.juicioInicioElegido = true;
       aplicarSobretasaSegunJuicio(false);
       saveAndCalculate();
       updateConvenioView();
+      try { marcarCamposObligatorios(); actualizarIndicadorControl(); } catch (e) {}
     }
 
     function actualizarVistaAdminSobretasa() {
@@ -7985,7 +8009,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
       const dias = diasDesde(valorCampo('inpFecha'));
       if (dias !== null && dias > 15) A('La fecha de liquidación tiene ' + dias + ' días: los valores pueden estar vencidos.', 'inpFecha', 'calc');
       if (dias !== null && dias < 0) A('La fecha de liquidación es futura.', 'inpFecha', 'calc');
-      if (cfgSobretasa().porFecha && state.juicioInicioElegido === false) A('No se eligió el inicio del juicio para la sobretasa (hasta el ' + formatFechaAR(cfgSobretasa().corte) + ' o desde el día siguiente).', 'btnJuicioAnterior', 'calc');
+      if (cfgSobretasa().porFecha && state.juicioInicioElegido === false) A('No se eligió el inicio del juicio para la sobretasa (hasta el ' + formatFechaAR(cfgSobretasa().corte) + ' o desde el día siguiente).', 'selInicioJuicio', 'calc');
       const filas = state.planRows || [];
       const dudosas = filas.filter(function (r) { return r.dudosa; }).map(function (r) { return 'N° ' + r.n; });
       if (dudosas.length) E('Hay cuotas con lectura dudosa sin confirmar (' + dudosas.join(', ') + '): compárelas con la imagen y confírmelas.', 'planRowsDetalle', 'calc');
@@ -8178,6 +8202,7 @@ NOTA: Los valores son con Vencimiento al día de la fecha, pudiendo sufrir modif
     function camposObligatorios() {
       const tipo = document.getElementById('selConvenioTipo')?.value || 'cuotas';
       const l = ['inpContribuyente', 'convNombre', 'convDni', 'convCalle', 'convCaratula', 'convCuentaPartida', 'convJuzgNro', 'convExpteNro', 'convFechaTexto', 'convAbogadoNombre'];
+      if (cfgSobretasa().porFecha) l.push('selInicioJuicio');
       if (document.getElementById('chkDeclaraCbu')?.checked) l.push('convCbu');
       if (tipo === 'fiador') {
         l.push('fiadorNombre', 'fiadorCuit');
